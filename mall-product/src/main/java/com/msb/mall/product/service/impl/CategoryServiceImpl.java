@@ -1,7 +1,12 @@
 package com.msb.mall.product.service.impl;
 
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -24,6 +29,51 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         );
 
         return new PageUtils(page);
+    }
+
+    /**
+     * @return com.msb.mall.common.utils.PageUtils
+     * @Author jincheng
+     * @Description //查询所有的类别数据，然后将数据封装为树形结构，便于前端使用
+     * @Date 16:10 2022/4/2
+     * @Param [params]
+     **/
+    @Override
+    public List<CategoryEntity> queryPageWithTree(Map<String, Object> params) {
+        //1.查询所有的商品分类信息
+        List<CategoryEntity> categoryEntities = baseMapper.selectList(null);
+        //2.将商品分类信息拆解为树形结构【父子关系】
+        //第一步遍历出所有的大类 parent_cid = 0
+        List<CategoryEntity> list = categoryEntities.stream().filter(entity -> entity.getParentCid() == 0)
+                .map(entity -> {
+                    //根据大类找到所有的小类,递归地实现
+                    entity.setChildren(getCategoryChildren(entity, categoryEntities));
+                    return entity;
+                }).sorted(Comparator.comparingInt(entity -> (entity.getSort() == null ? 0 : entity.getSort())))
+                .collect(Collectors.toList());
+        //第二部根据大类找到对应的所有的小类
+        return list;
+    }
+
+    /**
+     * @return java.util.List<com.msb.mall.product.entity.CategoryEntity>
+     * @Author jincheng
+     * @Description // 查找该大类下的所有小类,递归查找
+     * 为null的时候不会去map()里了，递归结束
+     * @Date 16:38 2022/4/2
+     * @Param [entity, categoryEntities] 某个大类和所有的类别数据
+     **/
+    private List<CategoryEntity> getCategoryChildren(CategoryEntity categoryEntity
+            , List<CategoryEntity> categoryEntities) {
+        List<CategoryEntity> collect = categoryEntities.stream().filter(entity -> {
+            //根据大类找到他直属的小类
+            return entity.getParentCid().equals(categoryEntity.getCatId());
+        }).map(entity -> {
+            entity.setChildren(getCategoryChildren(entity,categoryEntities));
+            return entity;
+        }).sorted(Comparator.comparingInt(entity -> (entity.getSort() == null ? 0 : entity.getSort())))
+                .collect(Collectors.toList());
+        return collect;
     }
 
 }

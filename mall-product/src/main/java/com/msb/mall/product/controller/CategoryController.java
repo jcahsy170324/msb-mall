@@ -1,6 +1,7 @@
 package com.msb.mall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -39,8 +40,16 @@ public class CategoryController {
     @RequestMapping("/list")
     public R list(@RequestParam Map<String, Object> params){
         PageUtils page = categoryService.queryPage(params);
-
         return R.ok().put("page", page);
+    }
+
+    /**
+     * 列表树形结构
+     */
+    @RequestMapping("/listTree")
+    public R listTree(@RequestParam Map<String,Object> params){
+        List<CategoryEntity> list = categoryService.queryPageWithTree(params);
+        return R.ok().put("data", list);
     }
 
 
