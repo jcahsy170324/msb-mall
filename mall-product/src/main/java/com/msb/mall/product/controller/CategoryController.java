@@ -5,6 +5,7 @@ import java.util.Map;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ import com.msb.mall.common.utils.R;
  * @email 927901442@qq.com
  * @date 2022-03-26 13:07:15
  */
+@RefreshScope
 @RestController
 @RequestMapping("product/category")
 public class CategoryController {
